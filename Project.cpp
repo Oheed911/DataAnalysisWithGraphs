@@ -169,6 +169,39 @@ public:
 		}
 		return countNumberOfEdges;
 	}
+	void DisplaySourceNodes()
+	{
+		int TotalNumberOfSourceNodes = 0;
+		T check;
+		for (int j = 0; j < TotalNumberOfNodesinGraph; j++)
+		{
+			check = graphnode[j].valueofnode;
+			bool indegree = false;
+			for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
+			{
+				node<T>* temp = graphnode[i].objAdjList.gethead();
+				while (temp!= NULL)
+				{
+					if (check == temp->data)
+					{
+						indegree = true;
+						break;
+					}
+					temp = temp->next;
+				}
+				if (indegree)
+					break;
+				else 
+					continue;
+			}
+			if (!indegree)
+			{
+				cout << graphnode[j].valueofnode << endl;
+				TotalNumberOfSourceNodes += 1;
+			}	
+		}
+		cout << "Total Number of Source Nodes Are : " << TotalNumberOfSourceNodes << endl;
+	}
 	void show()
 	{
 		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
@@ -256,21 +289,17 @@ void DataFetch(string filepath)
 			else
 				continue;
 		}
-
 	}
 	//closing the file
 	objFile.close();
 }
-
-
-
-
 int main()
 {
 	string path = "C:\\Users\\Butt\\Desktop\\test.txt";
 	DataFetch(path);
 	Gobj.DisplayTotalNode();
 	cout << "Number of Edges are : ";
-	cout << Gobj.calculateNumberofEdges() << endl;;
+	cout << Gobj.calculateNumberofEdges() << endl;
+	Gobj.DisplaySourceNodes();
 	//Gobj.showGraphStruct();
 }
