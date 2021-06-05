@@ -116,7 +116,7 @@ public:
 			else
 				continue;
 		}
-		return 0;
+		return -1;
 	}
 	void insertEdge(T t_source, T t_destination)
 	{
@@ -265,7 +265,6 @@ void DataFetch(string filepath)
 
 
 
-
 int main()
 {
 	string path = "C:\\Users\\Butt\\Desktop\\test.txt";
@@ -274,6 +273,4 @@ int main()
 	cout << "Number of Edges are : ";
 	cout << Gobj.calculateNumberofEdges() << endl;;
 	//Gobj.showGraphStruct();
-
-	
 }
