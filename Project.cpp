@@ -15,6 +15,7 @@ public:
 	node()
 	{
 		next = NULL;
+		data = 0;
 	}
 };
 
@@ -202,6 +203,31 @@ public:
 		}
 		cout << "Total Number of Source Nodes Are : " << TotalNumberOfSourceNodes << endl;
 	}
+	//function to show the number of sink nodes
+	void DisplayNumberOfSinkNodes()
+	{
+		int TotalNumberOfSinkNodes=0;
+		
+		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
+		{
+			bool outdegree = false;
+			node<T>* temp = graphnode[i].objAdjList.gethead();
+			if (temp != NULL)
+			{
+				outdegree = true;
+			}
+			else
+			{
+				outdegree = false;
+			}
+			if (!outdegree)
+			{
+				TotalNumberOfSinkNodes += 1;
+			}
+		}
+		cout << "Total Number of Sink Nodes in Graph is : " << TotalNumberOfSinkNodes << endl;
+	}
+
 	void show()
 	{
 		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
@@ -301,5 +327,6 @@ int main()
 	cout << "Number of Edges are : ";
 	cout << Gobj.calculateNumberofEdges() << endl;
 	Gobj.DisplaySourceNodes();
+	Gobj.DisplayNumberOfSinkNodes();
 	//Gobj.showGraphStruct();
 }
