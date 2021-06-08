@@ -236,8 +236,90 @@ public:
 };
 
 
-DirectedGraph<int> Gobj;
+//implementation of undirected graph
 
+template<class T>
+class UndirectedGraph 
+{
+	adjacencyMatrix<T>* undirectedGraphNode;
+	int TotalNumberofNodesUndirectedGraph;
+public:
+	void BuildGraph(T t_size)
+	{
+		undirectedGraphNode = new adjacencyMatrix<T>[t_size];
+		TotalNumberofNodesUndirectedGraph = t_size;
+		for (int i = 0; i < t_size; i++)
+		{
+			undirectedGraphNode[i].objAdjList.head = NULL;
+			undirectedGraphNode[i].valueofnode = 0;
+		}
+	}
+	int checkRepetition(T searchElement)
+	{
+		for (int i = 0; i < TotalNumberofNodesUndirectedGraph; i++)
+		{
+			if (searchElement == undirectedGraphNode[i].valueofnode)
+			{
+				return i;
+			}
+			else
+				continue;
+		}
+		return -1;
+	}
+	int checkemptyindex()
+	{
+		for (int i = 0; i < TotalNumberofNodesUndirectedGraph; i++)
+		{
+			if (undirectedGraphNode[i].valueofnode == 0)
+			{
+				return i;
+			}
+			else
+				continue;
+		}
+		return -1;
+	}
+	//insertion function in the undirected graph
+	void insertUnDirected(T t_source,T t_destination)
+	{
+		int index = checkRepetition(t_source);
+		if (index >= 0)
+		{
+			undirectedGraphNode[index].valueofnode = t_source;
+			undirectedGraphNode[index].objAdjList.insert(t_destination);
+		}
+		else
+		{
+			int Eindex = checkemptyindex();
+			if (Eindex == -1)
+				cout << "Graph is FULL" << endl;
+			else
+			{
+				undirectedGraphNode[Eindex].valueofnode = t_source;
+				undirectedGraphNode[Eindex].objAdjList.insert(t_destination);
+			}
+		}
+	}
+	//showing the number of the graph nodes
+	void showGraphStruct()
+	{
+		int nvert = TotalNumberofNodesUndirectedGraph;
+		cout << "Adjacency List\thead->Vertices\n";
+		for (int i = 0; i < nvert; i++)
+		{
+			cout << undirectedGraphNode[i].valueofnode << ":";
+			undirectedGraphNode[i].objAdjList.display();
+		}
+	}
+
+};
+
+
+
+
+DirectedGraph<int> Gobj;
+UndirectedGraph<int> UndirectedGraphObject;
 //file reading code
 
 void DataFetch(string filepath)
@@ -288,6 +370,7 @@ void DataFetch(string filepath)
 					}
 				}
 				Gobj.BuildGraph(stoi(NumberOfNodes));
+				UndirectedGraphObject.BuildGraph(stoi(NumberOfNodes));
 			}
 			if (countLine > 4)
 			{
@@ -311,6 +394,8 @@ void DataFetch(string filepath)
 					}
 				}
 				Gobj.insertEdge(stoi(iterate_source), stoi(iterate_dest));
+				UndirectedGraphObject.insertUnDirected(stoi(iterate_source), stoi(iterate_dest));
+				UndirectedGraphObject.insertUnDirected(stoi(iterate_dest), stoi(iterate_source));
 			}
 			else
 				continue;
@@ -328,5 +413,7 @@ int main()
 	cout << Gobj.calculateNumberofEdges() << endl;
 	Gobj.DisplaySourceNodes();
 	Gobj.DisplayNumberOfSinkNodes();
+
+	UndirectedGraphObject.showGraphStruct();
 	//Gobj.showGraphStruct();
 }
