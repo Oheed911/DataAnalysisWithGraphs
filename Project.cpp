@@ -4,7 +4,89 @@
 #include <string>
 using namespace std;
 
+//implementation of queue
+template<class T>
+struct Queue
+{
+	T data;
+	Queue<T>* next;
 
+};
+
+
+template<class T>
+struct tunnel
+{
+public:
+	Queue<T>* front;
+	Queue<T>* rear;
+	int size = 0;
+	tunnel()
+	{
+		front = NULL;
+		rear = NULL;
+	}
+	//function to get front
+	void enqueue(T a1)
+	{
+		Queue<T>* new_Node = new Queue<T>;
+		new_Node->data = a1;
+		if (front == NULL) {
+			front = rear = new_Node;
+			rear->next = NULL;
+			size++;
+		}
+		else {
+			//now if the the queue is not empty
+			rear->next = new_Node;
+			rear = new_Node;
+			rear->next = NULL;
+			size++;
+		}
+	}
+	Queue<T>* gfront()
+	{
+		return front;
+	}
+	bool is_empty()
+	{
+		if (size == 0)
+		{
+			return true;
+		}
+		else
+			return false;
+	}
+	void dequeue()
+	{
+		if (front == NULL)
+			return;
+		Queue<T>* tfront = new Queue<T>;
+		tfront = front;
+		front = front->next;
+		if (front == NULL)
+		{
+			rear = NULL;
+		}
+		size--;
+		delete tfront;
+	}
+	int gsize()
+	{
+		return size;
+	}
+	void Display()
+	{
+		Queue<T>* tfront = front;
+		int temp = gsize();
+		while (temp != 0)
+		{
+			cout << tfront->data << " ";
+			tfront = tfront->next;
+			temp--;
+		}
+	}
+};
 //implementation of the link list
 template <class T>
 class node
@@ -18,7 +100,80 @@ public:
 		data = 0;
 	}
 };
+template<class a>
+class stacklist
+{
+public:
+	node<a>* top;
+	stacklist()
+	{
+		top = NULL;
+	}
+	//now the funcitons
+	void push(a pushdata)
+	{
+		node<a>* new_Node = new node<a>;
 
+		new_Node->next = top;
+		new_Node->val = pushdata;
+		top = new_Node;
+	}
+
+	node<int>* Peek()
+	{
+		if (top != NULL)
+		{
+			return top;
+		}
+		else
+			cout << "STACK IS EMPTY" << endl;
+	}
+
+	a pop()
+	{
+		a ret;
+		if (top == NULL)
+		{
+			cout << "Stack is Empty" << endl;
+		}
+		else
+		{
+			node<a>* newnode = top;
+			ret = top->val;
+			//newnode = top;
+
+			top = top->next;
+
+			newnode->next = NULL;
+
+			delete newnode;
+		}
+		return ret;
+	}
+	int sizeQueu()
+	{
+		node<a>* temp = top;
+		int s = 0;
+		while (temp != NULL)
+		{
+			s++;
+			temp = temp->next;
+		}
+		return s;
+	}
+	bool isEmpty()
+	{
+		if (top == NULL)
+			return 1;
+		else
+			return 0;
+	}
+	a topele()
+	{
+		node<a>* temp = top;
+		return temp->val;
+	}
+};
 template <class T>
 class AdjencencyList
 {
@@ -280,14 +435,37 @@ public:
 		}
 		return -1;
 	}
+	void insertEdgeUndirectedGraph(T tsrc,T tdest)
+	{
+
+		insertUnDirected(tsrc, tdest);
+		insertUnDirected(tdest, tsrc);
+	}
 	//insertion function in the undirected graph
 	void insertUnDirected(T t_source,T t_destination)
 	{
 		int index = checkRepetition(t_source);
 		if (index >= 0)
 		{
-			undirectedGraphNode[index].valueofnode = t_source;
-			undirectedGraphNode[index].objAdjList.insert(t_destination);
+			node<T>* temp = undirectedGraphNode[index].objAdjList.gethead();
+			bool NodeInList = false;
+			while (temp != NULL)
+			{
+				if (temp->data == t_destination)
+				{
+					NodeInList = true;
+					break;
+				}
+				temp = temp->next;
+			}
+			if (!NodeInList)
+			{
+				undirectedGraphNode[index].valueofnode = t_source;
+				undirectedGraphNode[index].objAdjList.insert(t_destination);
+			}
+			else
+				return;
+			
 		}
 		else
 		{
@@ -300,6 +478,100 @@ public:
 				undirectedGraphNode[Eindex].objAdjList.insert(t_destination);
 			}
 		}
+	}
+	void DisplaySourceNodesUD()
+	{
+		int TotalNumberOfSourceNodes = 0;
+		T check;
+		for (int j = 0; j < TotalNumberofNodesUndirectedGraph ; j++)
+		{
+			check = undirectedGraphNode[j].valueofnode;
+			bool indegree = false;
+			for (int i = 0; i < TotalNumberofNodesUndirectedGraph; i++)
+			{
+				node<T>* temp = undirectedGraphNode[i].objAdjList.gethead();
+				while (temp != NULL)
+				{
+					if (check == temp->data)
+					{
+						indegree = true;
+						break;
+					}
+					temp = temp->next;
+				}
+				if (indegree)
+					break;
+				else
+					continue;
+			}
+			if (!indegree)
+			{
+				cout << undirectedGraphNode[j].valueofnode << endl;
+				TotalNumberOfSourceNodes += 1;
+			}
+		}
+		cout << "Total Number of Source Nodes Are : " << TotalNumberOfSourceNodes << endl;
+	}
+	int returnIndex(T searchnode)
+	{
+		for (int i = 0; i < TotalNumberofNodesUndirectedGraph; i++)
+		{
+			
+			if (searchnode == undirectedGraphNode[i].valueofnode)
+			{
+				return i;
+			}
+			else
+				continue;
+		}
+		return -1;
+	}
+	void BFS(T startnode)
+	{
+		//creating array of bool
+		bool* Visit_array = new bool[TotalNumberofNodesUndirectedGraph];
+		for (int i = 0; i < TotalNumberofNodesUndirectedGraph; i++)
+		{
+			Visit_array[i] = false;
+		}
+
+		tunnel<int> queue;
+		int atindex = returnIndex(startnode);
+		cout << startnode << endl;
+		Visit_array[atindex] = true;
+
+		queue.enqueue(startnode);
+		while (!queue.is_empty())
+		{
+			startnode = returnIndex(queue.gfront()->data);
+			cout << queue.gfront()->data<< "  ";
+			queue.dequeue();
+			node<int>* temp = undirectedGraphNode[startnode].objAdjList.gethead();
+			if (temp == NULL)
+				cout << "sink:: " << undirectedGraphNode[startnode].valueofnode << endl;
+			while (temp != NULL)
+			{
+				int i = returnIndex(temp->data);
+				if (Visit_array[i] == false)
+				{
+					Visit_array[i] = true;
+					queue.enqueue(temp->data);
+				}
+				temp = temp->next;
+			}
+		}
+	}
+	void DFSearch(T startnode)
+	{
+		//creating array of bool
+		bool* Visit_array = new bool[TotalNumberofNodesUndirectedGraph];
+		for (int i = 0; i < TotalNumberofNodesUndirectedGraph; i++)
+		{
+			Visit_array[i] = false;
+		}
+
+
+
 	}
 	//showing the number of the graph nodes
 	void showGraphStruct()
@@ -394,8 +666,7 @@ void DataFetch(string filepath)
 					}
 				}
 				Gobj.insertEdge(stoi(iterate_source), stoi(iterate_dest));
-				UndirectedGraphObject.insertUnDirected(stoi(iterate_source), stoi(iterate_dest));
-				UndirectedGraphObject.insertUnDirected(stoi(iterate_dest), stoi(iterate_source));
+				UndirectedGraphObject.insertEdgeUndirectedGraph(stoi(iterate_source), stoi(iterate_dest));
 			}
 			else
 				continue;
@@ -406,14 +677,16 @@ void DataFetch(string filepath)
 }
 int main()
 {
-	string path = "C:\\Users\\Butt\\Desktop\\test.txt";
+	string path = "C:\\Users\\Butt\\Desktop\\1.txt";
 	DataFetch(path);
 	Gobj.DisplayTotalNode();
 	cout << "Number of Edges are : ";
 	cout << Gobj.calculateNumberofEdges() << endl;
 	Gobj.DisplaySourceNodes();
 	Gobj.DisplayNumberOfSinkNodes();
-
+	UndirectedGraphObject.DisplaySourceNodesUD();
 	UndirectedGraphObject.showGraphStruct();
+	//UndirectedGraphObject.BFS(3466);
 	//Gobj.showGraphStruct();
+	
 }
