@@ -489,6 +489,50 @@ public:
 		}
 		cout << "Total Number of Sink Nodes in Graph is : " << TotalNumberOfSinkNodes << endl;
 	}
+	int indegree(T snode)
+	{
+		T check=snode;
+		int indegree = 0;
+		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
+		{
+			node<T>* temp = graphnode[i].objAdjList.gethead();
+			while (temp != NULL)
+			{
+				if (check == temp->data)
+				{
+					indegree += 1;
+					break;
+				}
+				temp = temp->next;
+			}
+		}
+		return indegree;
+	}
+	int oudegree(T snode)
+	{
+		int outdegree = 0;
+		int i = returnIndex(snode);
+		node<T>* temp = graphnode[i].objAdjList.gethead();
+		while (temp != NULL)
+		{
+			outdegree++;
+			temp = temp->next;
+		}
+		return outdegree;
+	}
+	void DisplayIsolatedNodes()
+	{
+		int TotalNumberofisolatednodes=0;
+
+		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
+		{
+			if (indegree(graphnode[i].valueofnode) == 0 && oudegree(graphnode[i].valueofnode) == 0)
+			{
+				TotalNumberofisolatednodes++;
+			}
+		}
+		cout << "Total Number of sink nodes Are: "<<TotalNumberofisolatednodes<<endl;
+	}
 	int returnIndex(T searchnode)
 	{
 		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
@@ -926,9 +970,10 @@ void DataFetch(string filepath)
 
 int main()
 {
-	cout << "Inserting Data Into Graph." << endl;
+	cout << "Inserting Data Into Graph...";
 	string path = "C:\\Users\\Butt\\Desktop\\1.txt";
 	DataFetch(path);
+	cout << endl;
 	cout << "Inserted Successfuly" << endl;
 	cout << endl;
 	string input;
@@ -941,6 +986,7 @@ int main()
 		cout << "2. Display the number of edges(5 marks)" << endl;
 		cout << "3. Display the number of source nodes(5 marks)" << endl;
 		cout << "4. Display the number of sink nodes(5 marks)" << endl;
+		cout << "5. Display the number of isolated nodes (5 marks)" << endl;
 		cout << "10. Display the in - degree distribution in the form of a table(10 marks)"<<endl;
 		cout << "11. Display the out - degree distribution in the form of a table(10 marks) "<< endl;
 		cout << "Choose from Above Options or enter q to quit" << endl;
@@ -960,7 +1006,12 @@ int main()
 		}
 		else if (input == "4")
 		{
+			cout << "Calculating Sink Node..." << endl;
 			Gobj.DisplayNumberOfSinkNodes();
+		}
+		else if (input == "5")
+		{
+			Gobj.DisplayIsolatedNodes();
 		}
 		else if (input == "10")
 		{
@@ -1010,5 +1061,5 @@ int main()
 		}
 
 	} while (input != "q");
-
+	return 0;
 }
