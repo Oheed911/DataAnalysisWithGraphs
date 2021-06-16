@@ -115,7 +115,7 @@ public:
 		node<a>* new_Node = new node<a>;
 
 		new_Node->next = top;
-		new_Node->val = pushdata;
+		new_Node->data = pushdata;
 		top = new_Node;
 	}
 
@@ -139,7 +139,7 @@ public:
 		else
 		{
 			node<a>* newnode = top;
-			ret = top->val;
+			ret = top->data;
 			//newnode = top;
 
 			top = top->next;
@@ -171,7 +171,7 @@ public:
 	a topele()
 	{
 		node<a>* temp = top;
-		return temp->val;
+		return temp->data;
 	}
 };
 template <class T>
@@ -229,7 +229,114 @@ struct adjacencyMatrix
 	T valueofnode;
 };
 
+
+//making the link list of a  link list to store the distributions of indegree and outdegree
+
+template <class T>
+class Node_Link_Node
+{
+public:
+	int count;
+	double ProbabilityofEachNode;
+	int distvalue;
+	Node_Link_Node<T>* nextNLN;
+	Node_Link_Node()
+	{
+		nextNLN = NULL;
+		count = 0;
+		distvalue = 0;
+		ProbabilityofEachNode = 0;
+	}
+};
+
+
+template <class T>
+class NLDClass 
+{
+public:
+	Node_Link_Node<T>* heading;
+	NLDClass()
+	{
+		heading = NULL;
+	}
+	//function to insert data in the link list of the distribution
+	void insertNLD(T degree)
+	{
+		if (heading == NULL)
+		{
+			Node_Link_Node<T>* newNode = new Node_Link_Node<T>;
+			newNode->distvalue = degree;
+			newNode->count++;
+			newNode->nextNLN = NULL;
+			heading = newNode;
+		}
+		else
+		{
+			Node_Link_Node<T>* iterate = heading;
+			Node_Link_Node<T>* temp = NULL;
+			while (iterate != NULL && iterate->distvalue!=degree)
+			{
+				temp = iterate;
+				iterate = iterate->nextNLN;
+			}
+			if (iterate!=NULL)
+			{
+				iterate->count++;
+			}
+			else
+			{
+				Node_Link_Node<T>* newNode = new Node_Link_Node<T>;
+				newNode->distvalue = degree;
+				newNode->count++;
+				newNode->nextNLN = NULL;
+				temp->nextNLN= newNode;
+			}
+		}
+	}
+	void displayProbdistribution()
+	{
+		Node_Link_Node<T>* iterate = heading;
+		cout << "Degree Nodes" << "	" << "DEGREE DISTRIBUTION" << endl;
+		while (iterate->nextNLN != NULL)
+		{
+			cout << iterate->distvalue << "	:	" << iterate->ProbabilityofEachNode << endl;
+			iterate = iterate->nextNLN;
+		}
+		cout << iterate->distvalue << "	:	" << iterate->ProbabilityofEachNode << endl;
+	}
+	void CalculateProbability(T nodes)
+	{
+		Node_Link_Node<T>* newNode = heading;
+		while (newNode != NULL)
+		{
+			newNode->ProbabilityofEachNode= double(newNode->count) / nodes;
+			newNode = newNode->nextNLN;
+		}
+	}
+	void Search(T node)
+	{
+		Node_Link_Node<T>* newNode = heading;
+		while (newNode!=NULL && newNode->distvalue!=node)
+		{
+			newNode = newNode->nextNLN;
+		}
+		if (newNode != NULL)
+		{
+			cout << "The Indegree Distribution of Nodes having inegree/outdegree, " << node <<" is  :"<< newNode->ProbabilityofEachNode << endl;
+		}
+		else
+		{
+			cout << "Cant Find the distribution value" << endl;
+		}
+		
+	}
+};
+
+
 //now the class of the graph
+
+NLDClass<int> storeoutdegree;
+NLDClass<int> storeIndegree;
 
 template<class T>
 class DirectedGraph
@@ -382,11 +489,67 @@ public:
 		}
 		cout << "Total Number of Sink Nodes in Graph is : " << TotalNumberOfSinkNodes << endl;
 	}
+	int returnIndex(T searchnode)
+	{
+		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
+		{
 
+			if (searchnode == graphnode[i].valueofnode)
+			{
+				return i;
+			}
+			else
+				continue;
+		}
+		return -1;
+	}
+	void OutDegreeDistribution()
+	{
+		int outdegree=0;
+		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
+		{
+			outdegree = 0;
+			node<T>* temp = graphnode[i].objAdjList.gethead();
+			while (temp != NULL)
+			{
+				outdegree++;
+				temp = temp->next;
+			}
+			storeoutdegree.insertNLD(outdegree);
+		}
+	}
+	void IndegreeDistribution()
+	{
+		int TotalNumberOfSourceNodes = 0;
+		T check;
+		for (int j = 0; j < TotalNumberOfNodesinGraph; j++)
+		{
+			check = graphnode[j].valueofnode;
+			int indegree = 0;
+			for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
+			{
+				node<T>* temp = graphnode[i].objAdjList.gethead();
+				while (temp != NULL)
+				{
+					if (check == temp->data)
+					{
+						indegree +=1;
+						break;
+					}
+					temp = temp->next;
+				}
+			}
+			storeIndegree.insertNLD(indegree);
+		}
+	}
 	void show()
 	{
 		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
 			cout << graphnode[i].valueofnode << endl;
+	}
+	T getTotalNodes()
+	{
+		return TotalNumberOfNodesinGraph;
 	}
 };
 
@@ -465,7 +628,6 @@ public:
 			}
 			else
 				return;
-			
 		}
 		else
 		{
@@ -485,6 +647,7 @@ public:
 		T check;
 		for (int j = 0; j < TotalNumberofNodesUndirectedGraph ; j++)
 		{
+			cout << "j:"<<j << endl;
 			check = undirectedGraphNode[j].valueofnode;
 			bool indegree = false;
 			for (int i = 0; i < TotalNumberofNodesUndirectedGraph; i++)
@@ -542,7 +705,7 @@ public:
 
 		queue.enqueue(startnode);
 		while (!queue.is_empty())
-		{
+		{	
 			startnode = returnIndex(queue.gfront()->data);
 			cout << queue.gfront()->data<< "  ";
 			queue.dequeue();
@@ -561,8 +724,10 @@ public:
 			}
 		}
 	}
+
 	void DFSearch(T startnode)
 	{
+		
 		//creating array of bool
 		bool* Visit_array = new bool[TotalNumberofNodesUndirectedGraph];
 		for (int i = 0; i < TotalNumberofNodesUndirectedGraph; i++)
@@ -570,8 +735,31 @@ public:
 			Visit_array[i] = false;
 		}
 
+		stacklist<T> stackp;
+		int atindex = returnIndex(startnode);
+		cout << startnode << endl;
+		Visit_array[atindex] = true;
 
-
+		stackp.push(startnode);
+		while (!stackp.isEmpty())
+		{
+			startnode = returnIndex(stackp.Peek()->data);
+			cout << stackp.Peek()->data<<" ";
+			stackp.pop();
+			node<int>* temp = undirectedGraphNode[startnode].objAdjList.gethead();
+			if (temp == NULL)
+				cout << "sink:: " << undirectedGraphNode[startnode].valueofnode << endl;
+			while (temp != NULL)
+			{
+				int i = returnIndex(temp->data);
+				if (Visit_array[i] == false)
+				{
+					Visit_array[i] = true;
+					stackp.push(temp->data);
+				}
+				temp = temp->next;
+			}
+		}
 	}
 	//showing the number of the graph nodes
 	void showGraphStruct()
@@ -584,7 +772,67 @@ public:
 			undirectedGraphNode[i].objAdjList.display();
 		}
 	}
+	//calculating the nummber of bridges
+	void calculateBridgeEdges(int source_vertex,bool* visiting_array,int* discTime,int* lowcheck,int* parent)
+	{	
+		cout << "Here" << endl;
+		static int time_t = 0;
+		int atindex = returnIndex(source_vertex);
+		//marking the visiting node as visited
+		visiting_array[atindex] = true;
+		//now initializing the discovery and low value for that vertex in a graph
+		time_t+=1;
+		discTime[atindex] = time_t;
+		//now intiitalizing the low index with time
+		lowcheck[atindex] = time_t;
 
+		//now checking the adjacent vertices of the graph
+
+		node<T>* iteratepointer = undirectedGraphNode[atindex].objAdjList.gethead();
+		while (iteratepointer != NULL)
+		{
+			int i = returnIndex(iteratepointer->data);
+			if (visiting_array[i] == false)
+			{
+				parent[i] = source_vertex;
+				calculateBridgeEdges(iteratepointer->data,visiting_array,discTime,lowcheck,parent);
+				lowcheck[atindex] = min(lowcheck[atindex], lowcheck[i]);
+				if (lowcheck[i] > discTime[atindex])
+				{
+					cout << "Bridge Edges Are: " << endl;
+					cout << source_vertex << iteratepointer->data << endl;
+				}
+
+			}
+			else if (iteratepointer->data != parent[i])
+			{
+				lowcheck[atindex] = min(lowcheck[atindex], discTime[i]);
+			}
+
+		}
+	}
+	void BridgeEdges()
+	{
+		bool* visiting_array = new bool[TotalNumberofNodesUndirectedGraph];
+		int* discTime = new int[TotalNumberofNodesUndirectedGraph];
+		int* lowcheck = new int[TotalNumberofNodesUndirectedGraph];
+		int* parent = new int[TotalNumberofNodesUndirectedGraph];
+		for (int i = 0; i < TotalNumberofNodesUndirectedGraph; i++)
+		{
+			parent[i] = 0;
+			visiting_array[i] = false;
+		}
+
+		//now calling th calc bridge funciton
+		for (int i = 0; i < TotalNumberofNodesUndirectedGraph; i++)
+		{
+			if (visiting_array[i] == false)
+			{
+				calculateBridgeEdges(undirectedGraphNode[i].valueofnode, visiting_array, discTime, lowcheck, parent);
+			}
+		}
+
+	}
 };
 
 
@@ -675,18 +923,92 @@ void DataFetch(string filepath)
 	//closing the file
 	objFile.close();
 }
+
 int main()
 {
+	cout << "Inserting Data Into Graph." << endl;
 	string path = "C:\\Users\\Butt\\Desktop\\1.txt";
 	DataFetch(path);
-	Gobj.DisplayTotalNode();
-	cout << "Number of Edges are : ";
-	cout << Gobj.calculateNumberofEdges() << endl;
-	Gobj.DisplaySourceNodes();
-	Gobj.DisplayNumberOfSinkNodes();
-	UndirectedGraphObject.DisplaySourceNodesUD();
-	UndirectedGraphObject.showGraphStruct();
-	//UndirectedGraphObject.BFS(3466);
-	//Gobj.showGraphStruct();
-	
+	cout << "Inserted Successfuly" << endl;
+	cout << endl;
+	string input;
+	do 
+	{
+		input = "";
+		cout << "			"<<"Menu" << endl;
+		cout << endl;
+		cout << "1. Display the number of nodes(5 marks)" << endl;
+		cout << "2. Display the number of edges(5 marks)" << endl;
+		cout << "3. Display the number of source nodes(5 marks)" << endl;
+		cout << "4. Display the number of sink nodes(5 marks)" << endl;
+		cout << "10. Display the in - degree distribution in the form of a table(10 marks)"<<endl;
+		cout << "11. Display the out - degree distribution in the form of a table(10 marks) "<< endl;
+		cout << "Choose from Above Options or enter q to quit" << endl;
+		cin >> input;
+		if (input == "1")
+		{
+			cout << "You have choosen option 1: " << endl;
+			Gobj.DisplayTotalNode();
+		}
+		else if (input == "2")
+		{
+			cout << Gobj.calculateNumberofEdges() << endl;
+		}
+		else if (input == "3")
+		{
+			Gobj.DisplaySourceNodes();
+		}
+		else if (input == "4")
+		{
+			Gobj.DisplayNumberOfSinkNodes();
+		}
+		else if (input == "10")
+		{
+			cout << "Calculating Indegree Disbtribution..." << endl;
+			Gobj.IndegreeDistribution();
+			storeIndegree.CalculateProbability(Gobj.getTotalNodes());
+			cout << endl;
+			cout << "Calculated Successfuly" << endl;
+			string input2="";
+			cout << "1. You want to display the whole distribution table." << endl;
+			cout << "2. You want to search in the distribution table." << endl;
+			cin >> input2;
+			if (input2 == "1")
+			{
+				storeIndegree.displayProbdistribution();
+			}
+			else if (input2 == "2")
+			{
+				int serchdist;
+				cout << "Enter the value of distribution you want to search in distribution table. " << endl;
+				cin >> serchdist;
+				storeIndegree.Search(serchdist);
+			}
+		}
+		else if (input == "11")
+		{
+			cout << "Calculating outdegreedegree Disbtribution..." << endl;
+			Gobj.OutDegreeDistribution();
+			storeoutdegree.CalculateProbability(Gobj.getTotalNodes());
+			cout << endl;
+			cout << "Calculated Successfuly" << endl;
+			string input2 = "";
+			cout << "1. You want to display the whole distribution table." << endl;
+			cout << "2. You want to search in the distribution table." << endl;
+			cin >> input2;
+			if (input2 == "1")
+			{
+				storeoutdegree.displayProbdistribution();
+			}
+			else if (input2 == "2")
+			{
+				int serchdist;
+				cout << "Enter the value of distribution you want to search in distribution table. " << endl;
+				cin >> serchdist;
+				storeoutdegree.Search(serchdist);
+			}
+		}
+
+	} while (input != "q");
+
 }
