@@ -214,7 +214,6 @@ public:
 			iterate = iterate->next;
 		}
 		cout << endl;
-
 	}
 	node<T>* gethead()
 	{
@@ -328,7 +327,6 @@ public:
 		{
 			cout << "Cant Find the distribution value" << endl;
 		}
-		
 	}
 };
 
@@ -372,7 +370,7 @@ public:
 	{
 		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
 		{
-			if  (graphnode[i].valueofnode==0)
+			if (graphnode[i].valueofnode == 0)
 			{
 				return i;
 			}
@@ -384,7 +382,7 @@ public:
 	void insertEdge(T t_source, T t_destination)
 	{
 		int index = checkRepetition(t_source);
-		if (index>=0)
+		if (index >= 0)
 		{
 			graphnode[index].valueofnode = t_source;
 			graphnode[index].objAdjList.insert(t_destination);
@@ -402,11 +400,43 @@ public:
 			}
 		}
 	}
+	//void nserting those edges that have an outdegree of zero
+
+	void setGraph()
+	{
+		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
+		{
+			node<T>* startnode = graphnode[i].objAdjList.gethead();
+			while (startnode != NULL)
+			{
+				T check = startnode->data;
+				bool found = false;
+				for (int j = 0; j < TotalNumberOfNodesinGraph; j++)
+				{
+					if (check == graphnode[j].valueofnode)
+					{
+						found = true;
+						break;
+					}
+				}
+				if (found == false)
+				{
+					int Eindex = checkemptyindex();
+					if (Eindex == -1)
+						cout << "Graph is FULL" << endl;
+					else
+					{
+						graphnode[Eindex].valueofnode = check;
+					}
+				}
+				startnode = startnode->next;
+			}
+		}
+	}
 	void showGraphStruct()
 	{
-		int nvert = TotalNumberOfNodesinGraph;
 		cout << "Adjacency List\thead->Vertices\n";
-		for (int i = 0; i < nvert; i++)
+		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
 		{
 			cout << graphnode[i].valueofnode << ":";
 			graphnode[i].objAdjList.display();
@@ -423,7 +453,7 @@ public:
 		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
 		{
 			countNumberOfEdges += 1;
-			node<T>* temp=graphnode[i].objAdjList.gethead();
+			node<T>* temp = graphnode[i].objAdjList.gethead();
 			while (temp->next != NULL)
 			{
 				countNumberOfEdges += 1;
@@ -443,7 +473,7 @@ public:
 			for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
 			{
 				node<T>* temp = graphnode[i].objAdjList.gethead();
-				while (temp!= NULL)
+				while (temp != NULL)
 				{
 					if (check == temp->data)
 					{
@@ -454,22 +484,22 @@ public:
 				}
 				if (indegree)
 					break;
-				else 
+				else
 					continue;
 			}
 			if (!indegree)
 			{
 				cout << graphnode[j].valueofnode << endl;
 				TotalNumberOfSourceNodes += 1;
-			}	
+			}
 		}
 		cout << "Total Number of Source Nodes Are : " << TotalNumberOfSourceNodes << endl;
 	}
 	//function to show the number of sink nodes
 	void DisplayNumberOfSinkNodes()
 	{
-		int TotalNumberOfSinkNodes=0;
-		
+		int TotalNumberOfSinkNodes = 0;
+
 		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
 		{
 			bool outdegree = false;
@@ -491,7 +521,7 @@ public:
 	}
 	int indegree(T snode)
 	{
-		T check=snode;
+		T check = snode;
 		int indegree = 0;
 		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
 		{
@@ -522,7 +552,7 @@ public:
 	}
 	void DisplayIsolatedNodes()
 	{
-		int TotalNumberofisolatednodes=0;
+		int TotalNumberofisolatednodes = 0;
 
 		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
 		{
@@ -531,7 +561,7 @@ public:
 				TotalNumberofisolatednodes++;
 			}
 		}
-		cout << "Total Number of sink nodes Are: "<<TotalNumberofisolatednodes<<endl;
+		cout << "Total Number of sink nodes Are: " << TotalNumberofisolatednodes << endl;
 	}
 	int returnIndex(T searchnode)
 	{
@@ -549,7 +579,7 @@ public:
 	}
 	void OutDegreeDistribution()
 	{
-		int outdegree=0;
+		int outdegree = 0;
 		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
 		{
 			outdegree = 0;
@@ -577,7 +607,7 @@ public:
 				{
 					if (check == temp->data)
 					{
-						indegree +=1;
+						indegree += 1;
 						break;
 					}
 					temp = temp->next;
@@ -595,6 +625,190 @@ public:
 	{
 		return TotalNumberOfNodesinGraph;
 	}
+
+	bool BFSForInalgorithmSCC(T startnode, T value_temp)
+	{
+		//creating array of bool
+		bool* Visit_array = new bool[TotalNumberOfNodesinGraph];
+		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
+		{
+			Visit_array[i] = false;
+		}
+
+		tunnel<int> queue;
+		int atindex = returnIndex(startnode);
+		Visit_array[atindex] = true;
+
+		queue.enqueue(startnode);
+		while (!queue.is_empty())
+		{
+			startnode = returnIndex(queue.gfront()->data);
+			queue.dequeue();
+			node<int>* temp = graphnode[startnode].objAdjList.gethead();
+			while (temp != NULL)
+			{
+				int i = returnIndex(temp->data);
+				if (value_temp == temp->data)
+				{
+					return true;
+				}
+				if (Visit_array[i] == false)
+				{
+					Visit_array[i] = true;
+					queue.enqueue(temp->data);
+				}
+				temp = temp->next;
+			}
+		}
+		return false;
+
+	}
+
+	//finding teh strongly connected componenets
+
+	adjacencyMatrix<T>* InalgorithmForScc()
+	{
+		adjacencyMatrix<T>* storingArray;
+		storingArray = new adjacencyMatrix<T>[TotalNumberOfNodesinGraph];
+		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
+		{
+			storingArray[i].valueofnode = 0;
+			storingArray[i].objAdjList.head = NULL;
+		}
+		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
+		{
+			T valueofS = graphnode[i].valueofnode;
+			storingArray[i].objAdjList.insert(graphnode[i].valueofnode);
+			storingArray[i].valueofnode = valueofS;
+			for (int j = 0; j < TotalNumberOfNodesinGraph; j++)
+			{
+			
+				if (BFSForInalgorithmSCC(graphnode[j].valueofnode, valueofS) && graphnode[j].valueofnode != valueofS)
+				{
+					storingArray[i].objAdjList.insert(graphnode[j].valueofnode);
+				}
+			}
+		}
+		return storingArray;
+	}
+	//algorithm for the finding of the outnodes in the graph
+	AdjencencyList<T> EnhanceBfsForoutdegreeCalling(T startnode)
+	{
+		//now doing the bfs on the graph
+		bool* Visit_array = new bool[TotalNumberOfNodesinGraph];
+		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
+		{
+			Visit_array[i] = false;
+		}
+		tunnel<int> queue;
+		int atindex = returnIndex(startnode);
+		Visit_array[atindex] = true;
+		AdjencencyList<T> StoringSingleOutArray;
+		queue.enqueue(startnode);
+		StoringSingleOutArray.insert(startnode);
+		while (!queue.is_empty())
+		{
+			startnode = returnIndex(queue.gfront()->data);
+			queue.dequeue();
+			node<int>* temp = graphnode[startnode].objAdjList.gethead();
+			while (temp != NULL)
+			{
+				int i = returnIndex(temp->data);
+				if (Visit_array[i] == false)
+				{
+					Visit_array[i] = true;
+					queue.enqueue(temp->data);
+					StoringSingleOutArray.insert(temp->data);
+				}
+				temp = temp->next;
+			}
+		}
+		return StoringSingleOutArray;
+	}
+	adjacencyMatrix<T>* outalgorithmForScc()
+	{
+		adjacencyMatrix<T>* storingoutarray;
+		storingoutarray = new adjacencyMatrix<T>[TotalNumberOfNodesinGraph];
+
+		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
+		{
+			storingoutarray[i].valueofnode = 0;
+			storingoutarray[i].objAdjList.head = NULL;
+		}
+		//now traversing the bfs on the algoithm
+		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
+		{
+			//now printing the nodes of the graph
+			storingoutarray[i].valueofnode = graphnode[i].valueofnode;
+			//now copying the whole link list
+			AdjencencyList<T> returnlist = EnhanceBfsForoutdegreeCalling(graphnode[i].valueofnode);
+			node<T>* copying = returnlist.gethead();
+			while (copying != NULL)
+			{
+				storingoutarray[i].objAdjList.insert(copying->data);
+				copying = copying->next;
+			}
+		}
+		return storingoutarray;
+	}
+	//now finding the sttongly connected components
+	adjacencyMatrix<T>* stronglyconnectedAlgorithm()
+	{
+		
+		adjacencyMatrix<int>* storingArray = InalgorithmForScc();
+		adjacencyMatrix<int>* storingoutArray = outalgorithmForScc();
+		adjacencyMatrix<T>* SCCWithoutUnique= new adjacencyMatrix<T>[TotalNumberOfNodesinGraph];
+		bool* markunique=new bool[TotalNumberOfNodesinGraph];
+		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
+		{
+			markunique[i] = true;
+			SCCWithoutUnique[i].valueofnode = 0;
+			SCCWithoutUnique[i].objAdjList.head = NULL;
+		}
+		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
+		{
+		
+			T valNode=storingArray[i].valueofnode;
+			SCCWithoutUnique[i].valueofnode = valNode;
+			for (int j = 0; j < TotalNumberOfNodesinGraph; j++)
+			{
+				if (valNode == storingoutArray[j].valueofnode)
+				{
+					//now finding the intersection in the files
+					node<T>* invallinklist = storingArray[i].objAdjList.gethead();
+					
+					while (invallinklist != NULL)
+					{
+						T dataIn = invallinklist->data;
+						node<T>* outvallinklist = storingoutArray[j].objAdjList.gethead();
+						while (outvallinklist != NULL)
+						{
+							if (dataIn == outvallinklist->data)
+							{
+								SCCWithoutUnique[i].objAdjList.insert(dataIn);
+								break;
+							}
+							outvallinklist = outvallinklist->next;
+						}
+						invallinklist = invallinklist->next;
+					}
+					break;
+				}
+			}
+		}
+		//now displayin the link lis
+		//now finding th unique elements in the link lists
+		//making the array of the bool
+		
+		
+		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
+		{
+			cout<<SCCWithoutUnique[i].valueofnode<<": ";
+			SCCWithoutUnique[i].objAdjList.display();
+		}
+		return SCCWithoutUnique;
+	}
+
 };
 
 
@@ -749,9 +963,9 @@ public:
 
 		queue.enqueue(startnode);
 		while (!queue.is_empty())
-		{	
+		{
 			startnode = returnIndex(queue.gfront()->data);
-			cout << queue.gfront()->data<< "  ";
+			cout << queue.gfront()->data << "  ";
 			queue.dequeue();
 			node<int>* temp = undirectedGraphNode[startnode].objAdjList.gethead();
 			if (temp == NULL)
@@ -768,7 +982,6 @@ public:
 			}
 		}
 	}
-
 	void DFSearch(T startnode)
 	{
 		
@@ -778,7 +991,6 @@ public:
 		{
 			Visit_array[i] = false;
 		}
-
 		stacklist<T> stackp;
 		int atindex = returnIndex(startnode);
 		cout << startnode << endl;
@@ -819,7 +1031,6 @@ public:
 	//calculating the nummber of bridges
 	void calculateBridgeEdges(int source_vertex,bool* visiting_array,int* discTime,int* lowcheck,int* parent)
 	{	
-		cout << "Here" << endl;
 		static int time_t = 0;
 		int atindex = returnIndex(source_vertex);
 		//marking the visiting node as visited
@@ -875,8 +1086,42 @@ public:
 				calculateBridgeEdges(undirectedGraphNode[i].valueofnode, visiting_array, discTime, lowcheck, parent);
 			}
 		}
-
+	} 
+	//enhanced code
+	AdjencencyList<T> EnhanceBfsForoutdegreeCalling(T startnode)
+	{
+		//now doing the bfs on the graph
+		bool* Visit_array = new bool[TotalNumberofNodesUndirectedGraph];
+		for (int i = 0; i < TotalNumberofNodesUndirectedGraph; i++)
+		{
+			Visit_array[i] = false;
+		}
+		tunnel<int> queue;
+		int atindex = returnIndex(startnode);
+		Visit_array[atindex] = true;
+		AdjencencyList<T> StoringSingleOutArray;
+		queue.enqueue(startnode);
+		StoringSingleOutArray.insert(startnode);
+		while (!queue.is_empty())
+		{
+			startnode = returnIndex(queue.gfront()->data);
+			queue.dequeue();
+			node<int>* temp = undirectedGraphNode[startnode].objAdjList.gethead();
+			while (temp != NULL)
+			{
+				int i = returnIndex(temp->data);
+				if (Visit_array[i] == false)
+				{
+					Visit_array[i] = true;
+					queue.enqueue(temp->data);
+					StoringSingleOutArray.insert(temp->data);
+				}
+				temp = temp->next;
+			}
+		}
+		return StoringSingleOutArray;
 	}
+
 };
 
 
@@ -964,6 +1209,7 @@ void DataFetch(string filepath)
 				continue;
 		}
 	}
+	Gobj.setGraph();
 	//closing the file
 	objFile.close();
 }
@@ -971,7 +1217,7 @@ void DataFetch(string filepath)
 int main()
 {
 	cout << "Inserting Data Into Graph...";
-	string path = "C:\\Users\\Butt\\Desktop\\1.txt";
+	string path = "C:\\Users\\Butt\\Desktop\\test.txt";
 	DataFetch(path);
 	cout << endl;
 	cout << "Inserted Successfuly" << endl;
@@ -987,8 +1233,10 @@ int main()
 		cout << "3. Display the number of source nodes(5 marks)" << endl;
 		cout << "4. Display the number of sink nodes(5 marks)" << endl;
 		cout << "5. Display the number of isolated nodes (5 marks)" << endl;
+
 		cout << "10. Display the in - degree distribution in the form of a table(10 marks)"<<endl;
 		cout << "11. Display the out - degree distribution in the form of a table(10 marks) "<< endl;
+		cout << "12. Find the number of the inlist of the graph " << endl;
 		cout << "Choose from Above Options or enter q to quit" << endl;
 		cin >> input;
 		if (input == "1")
@@ -1058,6 +1306,13 @@ int main()
 				cin >> serchdist;
 				storeoutdegree.Search(serchdist);
 			}
+		}
+		else if (input == "12")
+		{
+			cout << "finding the in of the vertices" << endl;
+			Gobj.stronglyconnectedAlgorithm();
+
+			//now finding teh insersection
 		}
 
 	} while (input != "q");
