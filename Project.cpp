@@ -296,13 +296,13 @@ public:
 	void displayProbdistribution()
 	{
 		Node_Link_Node<T>* iterate = heading;
-		cout << "Degree Nodes" << "	" << "DEGREE DISTRIBUTION" << endl;
+		cout << "Degree Nodes" << "		"<<"Number Of Nodes"<<"		" << "DEGREE DISTRIBUTION" << endl;
 		while (iterate->nextNLN != NULL)
 		{
-			cout << iterate->distvalue << "	:	" << iterate->ProbabilityofEachNode << endl;
+			cout << iterate->distvalue << "			" << iterate->count<<"			"<<iterate->ProbabilityofEachNode << endl;
 			iterate = iterate->nextNLN;
 		}
-		cout << iterate->distvalue << "	:	" << iterate->ProbabilityofEachNode << endl;
+		cout << iterate->distvalue << "			" << iterate->count << "			" << iterate->ProbabilityofEachNode << endl;
 	}
 	void CalculateProbability(T nodes)
 	{
@@ -312,6 +312,18 @@ public:
 			newNode->ProbabilityofEachNode= double(newNode->count) / nodes;
 			newNode = newNode->nextNLN;
 		}
+	}
+	void displayDistributionGraph()
+	{
+		Node_Link_Node<T>* iterate = heading;
+		cout << "Size " << "		" << "Number Of Nodes"<< endl;
+		while (iterate->nextNLN != NULL)
+		{
+			cout << iterate->distvalue << "			" << iterate->count<< endl;
+			iterate = iterate->nextNLN;
+		}
+		cout << iterate->distvalue << "			" << iterate->count<< endl;
+
 	}
 	void Search(T node)
 	{
@@ -756,7 +768,7 @@ public:
 		return storingoutarray;
 	}
 	//now finding the sttongly connected components
-	adjacencyMatrix<T>* stronglyconnectedAlgorithm()
+	int stronglyconnectedAlgorithm()
 	{
 		
 		adjacencyMatrix<int>* storingArray = InalgorithmForScc();
@@ -834,15 +846,18 @@ public:
 			}
 		}
 		int max = 0;
+		int findsize = 0;
 		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
 		{
-			
+
+			findsize = 0;
 			if (markunique[i] == true)
 			{
 				int count = 0;
 				node<T>* temp = SCCWithoutUnique[i].objAdjList.gethead();
 				while (temp != NULL)
 				{
+					findsize++;
 					count++;
 					temp = temp->next;
 				}
@@ -850,14 +865,16 @@ public:
 				{
 					max = count;
 				}
+				storeSSC.insertNLD(findsize);
 			}
 		}
-		cout << "The largest Size of the strongly connected component is : " << max << endl;
-		return SCCWithoutUnique;
+		
+		return max;
 	}
 
 };
 //implementation of undirected graph
+NLDClass<int> storeWeaklyCC;
 template<class T>
 class UndirectedGraph 
 {
@@ -1166,7 +1183,7 @@ public:
 		return StoringSingleOutArray;
 	}
 	//now finding the distance 
-	void weaklyConnectedComponents()
+	int weaklyConnectedComponents()
 	{
 		bool* markunique = new bool[TotalNumberofNodesUndirectedGraph];
 		adjacencyMatrix<T>* calcweaklyCC = new adjacencyMatrix<T>[TotalNumberofNodesUndirectedGraph];
@@ -1187,13 +1204,11 @@ public:
 				calcweaklyCC[i].objAdjList.insert(copying->data);
 				copying = copying->next;
 			}
-			cout << "i: "<< i << endl;
 		}
 		
 		//now finding the unique elements
 		for (int i = 0; i < TotalNumberofNodesUndirectedGraph - 1; i++)
 		{
-			cout << "i: " << endl;
 			node<T>* chec = calcweaklyCC[i].objAdjList.gethead();
 			for (int j = i + 1; j < TotalNumberofNodesUndirectedGraph; j++)
 			{
@@ -1221,15 +1236,19 @@ public:
 				}
 			}
 		}
+		//finding the maximum size of the weakly connected component
 		int max = 0;
+		int findsize = 0;
 		for (int i = 0; i < TotalNumberofNodesUndirectedGraph; i++)
 		{
+			findsize = 0;
 			if (markunique[i] == true)
 			{
 				int count = 0;
 				node<T>* temp = calcweaklyCC[i].objAdjList.gethead();
 				while (temp != NULL)
 				{
+					findsize++;
 					count++;
 					temp = temp->next;
 				}
@@ -1237,9 +1256,11 @@ public:
 				{
 					max = count;
 				}
+				storeWeaklyCC.insertNLD(findsize);
 			}
 		}
-		cout << "The largest size of the weakly connected component is: " << max << endl;
+		//now making the array
+		return max;
 	}
 
 };
@@ -1354,7 +1375,8 @@ int main()
 		cout << "10. Display the in - degree distribution in the form of a table(10 marks)"<<endl;
 		cout << "11. Display the out - degree distribution in the form of a table(10 marks) "<< endl;
 		cout << "12. Find the size of the larges " << endl;
-		cout << "14. Display the size of the largest weakly connected component (WCC) (25 marks)";
+		cout << "14. Display the size of the largest weakly connected component (WCC) (25 marks)" << endl;
+		cout<<  "15. Display the size distribution of all WCCs(10 marks)" << endl;
 		cout << "Choose from Above Options or enter q to quit" << endl;
 		cin >> input;
 		if (input == "1")
@@ -1427,11 +1449,36 @@ int main()
 		}
 		else if (input == "12")
 		{
-			Gobj.stronglyconnectedAlgorithm();
+
+			int max=Gobj.stronglyconnectedAlgorithm();
+			cout << "The largest Size of the strongly connected component is : " << max << endl;
 		}
 		else if (input == "14")
 		{
+			int max=UndirectedGraphObject.weaklyConnectedComponents();
+			cout << "The largest size of the weakly connected component is: " << max << endl;
+		}
+		else if (input == "15")
+		{
+			cout << "calculating Distribution..."<<endl;
 			UndirectedGraphObject.weaklyConnectedComponents();
+			cout << "Calculated Successfuly..." << endl;
+			string input2 = "";
+			cout << "1. You want to display the whole distribution table." << endl;
+			cout << "2. You want to search in the distribution table." << endl;
+			cin >> input2;
+			if (input2 == "1")
+			{
+				storeWeaklyCC.displayDistributionGraph();
+			}
+			else if (input2 == "2")
+			{
+				int serchdist;
+				cout << "Enter the value of distribution you want to search in distribution table. " << endl;
+				cin >> serchdist;
+				storeWeaklyCC.Search(serchdist);
+			}
+			
 		}
 	} while (input != "q");
 	return 0;
