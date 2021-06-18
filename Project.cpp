@@ -271,6 +271,7 @@ public:
 		}
 		else
 		{
+
 			Node_Link_Node<T>* iterate = heading;
 			Node_Link_Node<T>* temp = NULL;
 			while (iterate != NULL && iterate->distvalue!=degree)
@@ -335,6 +336,10 @@ public:
 
 NLDClass<int> storeoutdegree;
 NLDClass<int> storeIndegree;
+
+//to store the distributionof the strongly connected components 
+NLDClass<int> storeSSC;
+
 
 template<class T>
 class DirectedGraph
@@ -401,7 +406,6 @@ public:
 		}
 	}
 	//void nserting those edges that have an outdegree of zero
-
 	void setGraph()
 	{
 		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
@@ -799,21 +803,61 @@ public:
 		//now displayin the link lis
 		//now finding th unique elements in the link lists
 		//making the array of the bool
-		
-		
+
+		for (int i = 0; i < TotalNumberOfNodesinGraph-1; i++)
+		{
+			node<T>* chec = SCCWithoutUnique[i].objAdjList.gethead();
+			for (int j = i+1; j < TotalNumberOfNodesinGraph; j++)
+			{
+				node<T>* nextcheck = SCCWithoutUnique[j].objAdjList.gethead();
+					while (chec != NULL)
+					{
+						bool notunique = false;
+						T data = chec->data;
+						nextcheck = SCCWithoutUnique[j].objAdjList.gethead();
+						while (nextcheck != NULL)
+						{
+							if (chec->data == nextcheck->data)
+							{
+								markunique[j] = false;
+								notunique = true;
+								break;
+							}
+							nextcheck = nextcheck->next;
+						}
+						if (!notunique)
+						{
+							break;
+						}
+						chec = chec->next;
+					}
+			}
+		}
+		int max = 0;
 		for (int i = 0; i < TotalNumberOfNodesinGraph; i++)
 		{
-			cout<<SCCWithoutUnique[i].valueofnode<<": ";
-			SCCWithoutUnique[i].objAdjList.display();
+			
+			if (markunique[i] == true)
+			{
+				int count = 0;
+				node<T>* temp = SCCWithoutUnique[i].objAdjList.gethead();
+				while (temp != NULL)
+				{
+					count++;
+					temp = temp->next;
+				}
+				if (count > max)
+				{
+					max = count;
+				}
+			}
 		}
+		cout << "The largest Size of the strongly connected component is : " << max << endl;
 		return SCCWithoutUnique;
 	}
 
 };
-
-
 //implementation of undirected graph
-
 template<class T>
 class UndirectedGraph 
 {
@@ -1086,7 +1130,7 @@ public:
 				calculateBridgeEdges(undirectedGraphNode[i].valueofnode, visiting_array, discTime, lowcheck, parent);
 			}
 		}
-	} 
+	}
 	//enhanced code
 	AdjencencyList<T> EnhanceBfsForoutdegreeCalling(T startnode)
 	{
@@ -1121,11 +1165,84 @@ public:
 		}
 		return StoringSingleOutArray;
 	}
+	//now finding the distance 
+	void weaklyConnectedComponents()
+	{
+		bool* markunique = new bool[TotalNumberofNodesUndirectedGraph];
+		adjacencyMatrix<T>* calcweaklyCC = new adjacencyMatrix<T>[TotalNumberofNodesUndirectedGraph];
+		for (int i = 0; i < TotalNumberofNodesUndirectedGraph; i++)
+		{
+			markunique[i] = true;
+			calcweaklyCC[i].valueofnode = 0;
+			calcweaklyCC[i].objAdjList.head = NULL;
+		}
+		for (int i = 0; i < TotalNumberofNodesUndirectedGraph; i++)
+		{
+			calcweaklyCC[i].valueofnode = undirectedGraphNode[i].valueofnode;
+			//now copying the whole link list
+			AdjencencyList<T> returnlist = EnhanceBfsForoutdegreeCalling(undirectedGraphNode[i].valueofnode);
+			node<T>* copying = returnlist.gethead();
+			while (copying != NULL)
+			{
+				calcweaklyCC[i].objAdjList.insert(copying->data);
+				copying = copying->next;
+			}
+			cout << "i: "<< i << endl;
+		}
+		
+		//now finding the unique elements
+		for (int i = 0; i < TotalNumberofNodesUndirectedGraph - 1; i++)
+		{
+			cout << "i: " << endl;
+			node<T>* chec = calcweaklyCC[i].objAdjList.gethead();
+			for (int j = i + 1; j < TotalNumberofNodesUndirectedGraph; j++)
+			{
+				node<T>* nextcheck = calcweaklyCC[j].objAdjList.gethead();
+				while (chec != NULL)
+				{
+					bool notunique = false;
+					T data = chec->data;
+					nextcheck = calcweaklyCC[j].objAdjList.gethead();
+					while (nextcheck != NULL)
+					{
+						if (chec->data == nextcheck->data)
+						{
+							markunique[j] = false;
+							notunique = true;
+							break;
+						}
+						nextcheck = nextcheck->next;
+					}
+					if (!notunique)
+					{
+						break;
+					}
+					chec = chec->next;
+				}
+			}
+		}
+		int max = 0;
+		for (int i = 0; i < TotalNumberofNodesUndirectedGraph; i++)
+		{
+			if (markunique[i] == true)
+			{
+				int count = 0;
+				node<T>* temp = calcweaklyCC[i].objAdjList.gethead();
+				while (temp != NULL)
+				{
+					count++;
+					temp = temp->next;
+				}
+				if (count > max)
+				{
+					max = count;
+				}
+			}
+		}
+		cout << "The largest size of the weakly connected component is: " << max << endl;
+	}
 
 };
-
-
-
 
 DirectedGraph<int> Gobj;
 UndirectedGraph<int> UndirectedGraphObject;
@@ -1217,7 +1334,7 @@ void DataFetch(string filepath)
 int main()
 {
 	cout << "Inserting Data Into Graph...";
-	string path = "C:\\Users\\Butt\\Desktop\\test.txt";
+	string path = "C:\\Users\\Butt\\Desktop\\1.txt";
 	DataFetch(path);
 	cout << endl;
 	cout << "Inserted Successfuly" << endl;
@@ -1236,7 +1353,8 @@ int main()
 
 		cout << "10. Display the in - degree distribution in the form of a table(10 marks)"<<endl;
 		cout << "11. Display the out - degree distribution in the form of a table(10 marks) "<< endl;
-		cout << "12. Find the number of the inlist of the graph " << endl;
+		cout << "12. Find the size of the larges " << endl;
+		cout << "14. Display the size of the largest weakly connected component (WCC) (25 marks)";
 		cout << "Choose from Above Options or enter q to quit" << endl;
 		cin >> input;
 		if (input == "1")
@@ -1309,12 +1427,12 @@ int main()
 		}
 		else if (input == "12")
 		{
-			cout << "finding the in of the vertices" << endl;
 			Gobj.stronglyconnectedAlgorithm();
-
-			//now finding teh insersection
 		}
-
+		else if (input == "14")
+		{
+			UndirectedGraphObject.weaklyConnectedComponents();
+		}
 	} while (input != "q");
 	return 0;
 }
