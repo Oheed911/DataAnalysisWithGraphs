@@ -235,7 +235,7 @@ template <class T>
 class Node_Link_Node
 {
 public:
-	int count;
+	long long int count;
 	double ProbabilityofEachNode;
 	int distvalue;
 	Node_Link_Node<T>* nextNLN;
@@ -325,6 +325,7 @@ public:
 		cout << iterate->distvalue << "			" << iterate->count<< endl;
 
 	}
+	
 	void Search(T node)
 	{
 		Node_Link_Node<T>* newNode = heading;
@@ -438,9 +439,7 @@ public:
 				if (found == false)
 				{
 					int Eindex = checkemptyindex();
-					if (Eindex == -1)
-						cout << "Graph is FULL" << endl;
-					else
+					if (Eindex != -1)
 					{
 						graphnode[Eindex].valueofnode = check;
 					}
@@ -875,6 +874,7 @@ public:
 };
 //implementation of undirected graph
 NLDClass<int> storeWeaklyCC;
+NLDClass<int> storePathDistribution;
 template<class T>
 class UndirectedGraph 
 {
@@ -1090,7 +1090,7 @@ public:
 		}
 	}
 	//calculating the nummber of bridges
-	void calculateBridgeEdges(int source_vertex,bool* visiting_array,int* discTime,int* lowcheck,int* parent)
+	void calculateBridgeEdges(int source_vertex,bool* visiting_array,int* discTime,int* lowcheck,int* parentNodeStorage,long long int& CountBridgeEdges)
 	{	
 		static int time_t = 0;
 		int atindex = returnIndex(source_vertex);
@@ -1108,23 +1108,24 @@ public:
 		while (iteratepointer != NULL)
 		{
 			int i = returnIndex(iteratepointer->data);
-			if (visiting_array[i] == false)
+		
+			if (visiting_array[i] ==false)
 			{
-				parent[i] = source_vertex;
-				calculateBridgeEdges(iteratepointer->data,visiting_array,discTime,lowcheck,parent);
+				parentNodeStorage[i] = source_vertex;
+				calculateBridgeEdges(iteratepointer->data,visiting_array,discTime,lowcheck,parentNodeStorage,CountBridgeEdges);
 				lowcheck[atindex] = min(lowcheck[atindex], lowcheck[i]);
 				if (lowcheck[i] > discTime[atindex])
 				{
-					cout << "Bridge Edges Are: " << endl;
-					cout << source_vertex << iteratepointer->data << endl;
+					CountBridgeEdges++;
+					/*cout << "Bridge Edges Are: " << endl;
+					cout << source_vertex <<"   "<< iteratepointer->data << endl;*/
 				}
-
 			}
-			else if (iteratepointer->data != parent[i])
+			else if (iteratepointer->data != parentNodeStorage[atindex])
 			{
 				lowcheck[atindex] = min(lowcheck[atindex], discTime[i]);
 			}
-
+			iteratepointer = iteratepointer->next;
 		}
 	}
 	void BridgeEdges()
@@ -1133,10 +1134,15 @@ public:
 		int* discTime = new int[TotalNumberofNodesUndirectedGraph];
 		int* lowcheck = new int[TotalNumberofNodesUndirectedGraph];
 		int* parent = new int[TotalNumberofNodesUndirectedGraph];
+		long long int cBE=0;
 		for (int i = 0; i < TotalNumberofNodesUndirectedGraph; i++)
 		{
 			parent[i] = 0;
 			visiting_array[i] = false;
+			discTime[i] = 0;
+			lowcheck[i] = 0;
+			parent[i] = 0;
+			cBE = 0;
 		}
 
 		//now calling th calc bridge funciton
@@ -1144,9 +1150,90 @@ public:
 		{
 			if (visiting_array[i] == false)
 			{
-				calculateBridgeEdges(undirectedGraphNode[i].valueofnode, visiting_array, discTime, lowcheck, parent);
+				calculateBridgeEdges(undirectedGraphNode[i].valueofnode, visiting_array, discTime, lowcheck, parent,cBE);
 			}
 		}
+
+
+		//printing the number of bridge edges
+		cout << "The Total number of bridge edges in this graph are: " << cBE << endl;
+	}
+	//now finding the shortest path of the code
+	int* shortestpath(int startingnode)
+	{
+		int source = returnIndex(startingnode);
+		bool* visited = new bool[TotalNumberofNodesUndirectedGraph];
+		int* dist = new int[TotalNumberofNodesUndirectedGraph];
+		for (int i = 0; i < TotalNumberofNodesUndirectedGraph; i++)
+		{
+			dist[i] = -1;
+			visited[i] = false;
+		}
+		dist[source] = 0;
+		visited[source] = true;
+		tunnel<T> queue;
+		queue.enqueue(source);
+		node<int>* temp = undirectedGraphNode[source].objAdjList.gethead();
+		int curr = 0;
+		while (!queue.is_empty())
+		{
+			curr = queue.gfront()->data;
+			queue.dequeue();
+			temp = undirectedGraphNode[curr].objAdjList.gethead();
+			while (temp != NULL)
+			{
+				int i = returnIndex(temp->data);
+				if (visited[i] == false)
+				{
+					visited[i] = true;
+					queue.enqueue(i);
+					dist[i] = dist[curr] + 1;
+				}
+				temp = temp->next;
+			}
+		}
+		return dist;
+	}
+	//funciton to find the shortest path of every node
+	void findingshortestpath()
+	{
+		for (int i = 0; i < TotalNumberofNodesUndirectedGraph; i++)
+		{
+			int* retpath = new int[TotalNumberofNodesUndirectedGraph];
+			retpath=shortestpath(undirectedGraphNode[i].valueofnode);
+			for (int i = 0; i < TotalNumberofNodesUndirectedGraph; i++)
+			{
+				if (retpath[i] != -1)
+				{
+					storePathDistribution.insertNLD(retpath[i]);
+				}
+			}
+		}
+	}
+	//now finding the diameter of the graph
+	int DiameterOfTheGraph() 
+	{
+		int* visited = new int[TotalNumberofNodesUndirectedGraph];
+		int count = 0;
+		int maximum = 0;
+		for (int k = 0; k < TotalNumberofNodesUndirectedGraph; k++) 
+		{
+			visited = shortestpath(undirectedGraphNode[k].valueofnode);
+			for (int i = 0; i < TotalNumberofNodesUndirectedGraph - 1; i++)
+			{
+				count = visited[i];
+				for (int j = i+1; j < TotalNumberofNodesUndirectedGraph; j++) 
+				{
+					if (visited[i] < visited[j])
+						count = visited[i];
+				}
+			}
+			if (count > maximum)
+			{
+				maximum = count;
+			}
+		}
+		return maximum;
 	}
 	//enhanced code
 	AdjencencyList<T> EnhanceBfsForoutdegreeCalling(T startnode)
@@ -1371,13 +1458,17 @@ int main()
 		cout << "3. Display the number of source nodes(5 marks)" << endl;
 		cout << "4. Display the number of sink nodes(5 marks)" << endl;
 		cout << "5. Display the number of isolated nodes (5 marks)" << endl;
-
+		cout << "6. Calculate the number of the bridges in a graph. (15 marks)" << endl;
+		cout<< "8. Display the shortest path length distribution(20 marks) "<< endl;
+		cout << "9. Display the Diameter Of the Graph." << endl;
 		cout << "10. Display the in - degree distribution in the form of a table(10 marks)"<<endl;
 		cout << "11. Display the out - degree distribution in the form of a table(10 marks) "<< endl;
 		cout << "12. Find the size of the larges " << endl;
 		cout << "14. Display the size of the largest weakly connected component (WCC) (25 marks)" << endl;
 		cout<<  "15. Display the size distribution of all WCCs(10 marks)" << endl;
+		cout << "\033[1;31m";
 		cout << "Choose from Above Options or enter q to quit" << endl;
+		cout << "\033[0m";
 		cin >> input;
 		if (input == "1")
 		{
@@ -1400,6 +1491,42 @@ int main()
 		else if (input == "5")
 		{
 			Gobj.DisplayIsolatedNodes();
+		}
+		else if (input == "6")
+		{
+			cout << "Calculating Bridge Edges..." << endl;
+			UndirectedGraphObject.BridgeEdges();
+
+		}
+		else if (input == "8")
+		{
+			cout << "Calculating Shortest Path Distribution...";
+			UndirectedGraphObject.findingshortestpath();
+			cout << endl;
+			cout << "Calculated Successfuly" << endl;
+			string input2 = "";
+			cout << "1. You want to display the whole distribution table." << endl;
+			cout << "2. You want to search in the distribution table." << endl;
+			cin >> input2;
+			if (input2 == "1")
+			{
+				storePathDistribution.displayDistributionGraph();
+			}
+			else if (input2 == "2")
+			{
+				int serchdist;
+				cout << "Enter the value of distribution you want to search in distribution table. " << endl;
+				cin >> serchdist;
+				storePathDistribution.Search(serchdist);
+			}
+			
+		}
+		else if (input == "9")
+		{
+			cout << "calculating The Shortest path Distribution... ";
+			int diam=UndirectedGraphObject.DiameterOfTheGraph();
+			cout << endl;
+			cout << "Diameter of the given Graph is: " << diam << endl;
 		}
 		else if (input == "10")
 		{
